@@ -1,43 +1,14 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
-	"strconv"
-	"strings"
+
+	"github.com/ashiqYousuf/redis-lite/resp"
 )
 
 func main() {
-	input := "$5\r\nAhmed\r\n"
-	reader := bufio.NewReader(strings.NewReader(input))
-
-	b, _ := reader.ReadByte()
-
-	if b != '$' {
-		log.Fatal("Invalid type, expecting bulk strings only")
-	}
-
-	size, _ := reader.ReadByte()
-	strSize, err := strconv.ParseInt(string(size), 10, 64)
-	if err != nil {
-		log.Fatal("invalid type conversion:", err)
-	}
-
-	// consume /r/r
-	reader.ReadByte()
-	reader.ReadByte()
-
-	name := make([]byte, strSize)
-	reader.Read(name)
-
-	fmt.Println(string(name))
-}
-
-func M() {
 	// Create a new server
 	// ":PORT" means the server will listen on all available
 	// network interfaces on port PORT.
@@ -64,17 +35,13 @@ func M() {
 	// clients and respond to them.
 
 	for {
-		buf := make([]byte, 1024)
-
-		// Read message from client
-		_, err := conn.Read(buf)
+		resp := resp.NewResp(conn)
+		value, err := resp.Read()
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			log.Fatal("error reading from client:", err)
+			log.Fatal(err)
 		}
 
+		fmt.Println(value)
 		// ignore request and send back a PONG
 		conn.Write([]byte("+OK\r\n"))
 	}

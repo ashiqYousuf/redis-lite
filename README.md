@@ -18,3 +18,39 @@ Redis-lite is a great tool for developers who want to:
 - Understand **in-memory data management**
 
 ---
+
+
+### RESP Protocol (Bulk strings example):
+
+```go
+
+func M() {
+	input := "$5\r\nAhmed\r\n"
+	reader := bufio.NewReader(strings.NewReader(input))
+
+	b, _ := reader.ReadByte()
+
+	if b != '$' {
+		log.Fatal("Invalid type, expecting bulk strings only")
+	}
+
+	size, _ := reader.ReadByte()
+	strSize, err := strconv.ParseInt(string(size), 10, 64)
+	if err != nil {
+		log.Fatal("invalid type conversion:", err)
+	}
+
+	// consume /r/n
+	reader.ReadByte()
+	reader.ReadByte()
+
+	name := make([]byte, strSize)
+	reader.Read(name)
+
+	// consume /r/n
+	reader.ReadByte()
+	reader.ReadByte()
+
+	fmt.Println(string(name))
+}
+```
